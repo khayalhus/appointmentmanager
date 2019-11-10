@@ -73,6 +73,10 @@ int WorkPlan::getUsableTime()
 void WorkPlan::create()
 {		
 	//THIS FUNCTION WILL BE CODED BY YOU
+	head = NULL;
+
+	usable_day = -1;
+	usable_time = -1;
 }
 
 void WorkPlan::close()
@@ -83,11 +87,55 @@ void WorkPlan::close()
 void WorkPlan::add(Task *task)
 {
 	//THIS FUNCTION WILL BE CODED BY YOU
+	Task *newTask = new Task(); // create the task to be added
+	newTask->name = new char [strlen(task->name)];
+	strcpy(newTask->name, task->name);
+	newTask->priority = task->priority;
+	newTask->day = task->day;
+	newTask->time = task->time;
+
+	if (head == NULL) {
+		head = newTask;
+		head->next = head;
+		head->previous = head;
+		head->counterpart = NULL;
+		return; // implement as first node
+	} 
+	
+	Task *traverse = new Task();
+	traverse = head;
+	do {
+		if (newTask->day == traverse->day) {
+			// TO BE CODED LATER
+			return; // add task to an existing day
+		}
+		else if (newTask->day < traverse->day) {
+			(traverse->previous)->next = newTask;
+			newTask->previous = traverse->previous;
+			newTask->next = traverse;
+			traverse->previous = newTask;
+			newTask->counterpart = NULL;
+			if (traverse == head) {
+				head = newTask; // add as the head node
+			}
+			return; // add in between days
+		}
+		traverse = traverse->next;
+	} while (traverse != head);
+
+	(traverse->previous)->next = newTask;
+	newTask->previous = traverse->previous;
+	newTask->next = traverse;
+	traverse->previous = newTask;
+	newTask->counterpart = NULL;
+	return;
+	// add as tail
 } 
 
 Task * WorkPlan::getTask(int day, int time)
 {
 	//THIS FUNCTION WILL BE CODED BY YOU
+	return NULL; // TO BE CODED LATER
 }
 
 
