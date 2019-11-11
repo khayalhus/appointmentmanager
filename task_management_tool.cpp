@@ -106,7 +106,87 @@ void WorkPlan::add(Task *task)
 	traverse = head;
 	do {
 		if (newTask->day == traverse->day) {
-			// TO BE CODED LATER
+			Task *compeer = new Task();
+			Task *tail = new Task();
+			compeer = traverse;
+			while (compeer != NULL) {
+				if (newTask->time == compeer->time) {
+					if (newTask->priority > compeer->priority) {
+						if (compeer->next != NULL || compeer->previous != NULL) {
+							if (compeer == head) {
+								head = newTask;
+								head->next = compeer->next;
+								head->previous = compeer->previous;
+								compeer->previous->next = head;
+								compeer->next->previous = head;
+								compeer->next = NULL;
+								compeer->previous = NULL;
+								head->counterpart = compeer;
+								return; // add as the first task of the first day
+							} else {
+								newTask->next = compeer->next;
+								newTask->previous = compeer->previous;
+								compeer->previous->next = newTask;
+								compeer->next->previous = newTask;
+								compeer->next = NULL;
+								compeer->previous = NULL;
+								newTask->counterpart = compeer;
+								return; // add before first task of a day
+							}
+						}
+						// add task instead of compeer
+						checkAvailableNextTimesFor(compeer);
+						compeer->day = usable_day;
+						compeer->time = usable_time;
+						add(compeer);
+						return;
+					} else {
+						// delay task to another time
+						checkAvailableNextTimesFor(newTask);
+						newTask->day = usable_day;
+						newTask->time = usable_time;
+						add(newTask);
+						return;
+					}
+					return;
+				} else if (newTask->time < compeer->time) {
+					if (compeer->next != NULL || compeer->previous != NULL) {
+						if (compeer == head) {
+							head = newTask;
+							head->next = compeer->next;
+							head->previous = compeer->previous;
+							compeer->previous->next = head;
+							compeer->next->previous = head;
+							compeer->next = NULL;
+							compeer->previous = NULL;
+							head->counterpart = compeer;
+							return; // add as the first task of the first day
+						} else {
+							newTask->next = compeer->next;
+							newTask->previous = compeer->previous;
+							compeer->previous->next = newTask;
+							compeer->next->previous = newTask;
+							compeer->next = NULL;
+							compeer->previous = NULL;
+							newTask->counterpart = compeer;
+							return; // add before first task of a day
+						}
+					}
+					else {
+						newTask->next = NULL;
+						newTask->previous = NULL;
+						tail->counterpart = newTask;
+						newTask->counterpart = compeer;
+						return; // add in between tasks of the day
+					}
+				}
+				tail = compeer;
+				compeer = compeer->counterpart;
+			}
+			newTask->next = NULL;
+			newTask->previous = NULL;
+			newTask->counterpart = NULL;
+			tail->counterpart = newTask; // add as the last task of the day
 			return; // add task to an existing day
 		}
 		else if (newTask->day < traverse->day) {
@@ -141,6 +221,42 @@ Task * WorkPlan::getTask(int day, int time)
 
 void WorkPlan::checkAvailableNextTimesFor(Task *delayed)	
 {	//THIS FUNCTION WILL BE CODED BY YOU
+	Task* traverse = new Task;
+	traverse = head;
+	while (delayed->day != traverse->day) {
+		traverse = traverse->next;
+		if (traverse == head) break;
+	}
+	Task* compeer = new Task;
+	compeer = traverse;
+	while (delayed->time != compeer->time) {
+		compeer = compeer->counterpart;
+	}
+	while (compeer->counterpart != NULL && compeer->time + 1 == compeer->counterpart->time) {
+		compeer = compeer->counterpart;
+	}
+	if (compeer->time == 14) {
+		do {
+			compeer = traverse;
+			while (compeer->counterpart != NULL) {
+				if (compeer->time + 1 != compeer->counterpart->time) {
+					usable_day = compeer->day;
+					usable_time = compeer->time + 1;
+					return;
+				}
+				compeer = compeer->counterpart;
+			}
+			traverse = traverse->next;
+		} while (traverse != head);
+	}
+	else {
+		usable_day = compeer->day;
+		usable_time = compeer->time + 1;
+		return;
+	}
+	usable_day = -1;
+	usable_time = -1;
+	return;
 }
 
 void WorkPlan::delayAllTasksOfDay(int day)
