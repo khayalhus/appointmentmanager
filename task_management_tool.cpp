@@ -134,8 +134,9 @@ void WorkPlan::add(Task *task)
 								compeer->next->previous = head;
 								compeer->next = NULL;
 								compeer->previous = NULL;
-								head->counterpart = compeer;
-								return; // add as the first task of the first day
+								head->counterpart = compeer->counterpart;
+								compeer->counterpart = NULL;
+								// add as the first task of the first day
 							} else {
 								newTask->next = compeer->next;
 								newTask->previous = compeer->previous;
@@ -143,8 +144,9 @@ void WorkPlan::add(Task *task)
 								compeer->next->previous = newTask;
 								compeer->next = NULL;
 								compeer->previous = NULL;
-								newTask->counterpart = compeer;
-								return; // add before first task of a day
+								newTask->counterpart = compeer->counterpart;
+								compeer->counterpart = NULL;
+								// add before first task of a day
 							}
 						}
 						// add task instead of compeer
@@ -251,38 +253,55 @@ Task * WorkPlan::getTask(int day, int time)
 void WorkPlan::checkAvailableNextTimesFor(Task *delayed)	
 {	//THIS FUNCTION WILL BE CODED BY YOU
 	Task* traverse = new Task;
+	Task* compeer = new Task;
 	traverse = head;
 	while (delayed->day != traverse->day) {
 		traverse = traverse->next;
 		if (traverse == head) break;
 	}
-	Task* compeer = new Task;
 	compeer = traverse;
-	while (delayed->time != compeer->time) {
-		compeer = compeer->counterpart;
-	}
-	while (compeer->counterpart != NULL && compeer->time + 1 == compeer->counterpart->time) {
-		compeer = compeer->counterpart;
-	}
-	if (compeer->time == 14) {
+	int time = 0;
+	//cout << "DEBUG LINE 1\n";
+	if (delayed->time != 7) {
+		while (compeer->counterpart != NULL && delayed->time != compeer->time) {
+			compeer = compeer->counterpart;
+		}
+		//cout << "DEBUG LINE 2\n";
+		time = delayed->time;
 		do {
-			compeer = traverse;
 			while (compeer->counterpart != NULL) {
-				if (compeer->time + 1 != compeer->counterpart->time) {
+				if (time + 1 != compeer->counterpart->time) {
 					usable_day = compeer->day;
-					usable_time = compeer->time + 1;
+					usable_time = time + 1;
+					cout << delayed->name << " " << usable_day << " " << usable_time << "\n";
 					return;
 				}
+				time++;
 				compeer = compeer->counterpart;
 			}
 			traverse = traverse->next;
-		} while (traverse != head);
+			time = 7;
+			compeer = traverse;
+		} while (compeer != head);
+	} else {
+		time = delayed->time;
+		do {
+			do {
+				if (time + 1 != compeer->time) {
+					usable_day = compeer->day;
+					usable_time = time + 1;
+					cout << delayed->name << " " << usable_day << " " << usable_time << "\n";
+					return;
+				}
+				time++;
+				compeer = compeer->counterpart;
+			} while (compeer != NULL);
+			traverse = traverse->next;
+			time = 7;
+			compeer = traverse;
+		} while (compeer != head);
 	}
-	else {
-		usable_day = compeer->day;
-		usable_time = compeer->time + 1;
-		return;
-	}
+
 	usable_day = -1;
 	usable_time = -1;
 	return;
@@ -291,16 +310,46 @@ void WorkPlan::checkAvailableNextTimesFor(Task *delayed)
 void WorkPlan::delayAllTasksOfDay(int day)
 {
 	//THIS FUNCTION WILL BE CODED BY YOU
+	Task *traverse = new Task();
+	Task *tail = new Task();
+	traverse = head;
+	while (traverse->day != day) {
+		traverse = traverse->next;
+		if (traverse == head) return;
+	}
+	while (traverse != NULL) {
+		Task *delayed = new Task();
+		delayed->name = new char [strlen(traverse->name)];
+		strcpy(delayed->name, traverse->name);
+		delayed->priority = traverse->priority;
+		delayed->day = day + 1;
+		delayed->time = 7;
+		checkAvailableNextTimesFor(delayed);
+		delayed->day = usable_day;
+		delayed->time = usable_time;
+		tail = traverse;
+		traverse = traverse->counterpart;
+		cout << "DEBUG LINE BT\n";
+		remove(tail);
+		cout << "DEBUG LINE AT\n";
+		add(delayed);
+		cout << "DEBUG LINE AD\n";
+	}
 }
 
 void WorkPlan::remove(Task *target)
 {
 	//THIS FUNCTION WILL BE CODED BY YOU
 	if (target->next || target->previous) {
-		(target->previous)->next = target->counterpart;
-		(target->counterpart)->next = target->next;
-		(target->counterpart)->previous = target->previous;
-		(target->next)->previous = target->counterpart;
+		if (target->counterpart == NULL) {
+			(target->previous)->next = target->next;
+			(target->next)->previous = target->previous;
+		} else {
+			(target->previous)->next = target->counterpart;
+			(target->counterpart)->next = target->next;
+			(target->counterpart)->previous = target->previous;
+			(target->next)->previous = target->counterpart;
+		}
 	}
 	else {
 		Task* traverse = new Task();
