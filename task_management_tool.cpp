@@ -82,6 +82,19 @@ void WorkPlan::create()
 void WorkPlan::close()
 {
 	//THIS FUNCTION WILL BE CODED BY YOU
+	Task *traverse = new Task();
+	Task *tail = new Task();
+	traverse = head;
+	head->previous->next = NULL; // break the circularity
+	while (head != NULL) {
+		head = head->next;
+		while (traverse != NULL) {
+			tail = traverse;
+			traverse = traverse->counterpart;
+			delete tail;
+		}
+		traverse = head;
+	}
 }
 
 void WorkPlan::add(Task *task)
@@ -215,7 +228,23 @@ void WorkPlan::add(Task *task)
 Task * WorkPlan::getTask(int day, int time)
 {
 	//THIS FUNCTION WILL BE CODED BY YOU
-	return NULL; // TO BE CODED LATER
+	Task *traverse = new Task();
+	traverse = head;
+	do {
+		if (traverse->day == day) {
+			while (traverse != NULL && traverse->time != time) {
+				traverse = traverse->counterpart;
+			}
+			if (traverse->time == time) {
+				return traverse;
+			}
+			else {
+				return NULL;
+			}
+		}
+		traverse = traverse->next;
+	} while (traverse != head);
+	return NULL;
 }
 
 
@@ -267,6 +296,30 @@ void WorkPlan::delayAllTasksOfDay(int day)
 void WorkPlan::remove(Task *target)
 {
 	//THIS FUNCTION WILL BE CODED BY YOU
+	if (target->next || target->previous) {
+		(target->previous)->next = target->counterpart;
+		(target->counterpart)->next = target->next;
+		(target->counterpart)->previous = target->previous;
+		(target->next)->previous = target->counterpart;
+	}
+	else {
+		Task* traverse = new Task();
+		Task* tail = new Task();
+		traverse = head;
+		do {
+			if (traverse->day == target->day) {
+				while (traverse->time != target->time && traverse) {
+					tail = traverse;
+					traverse = traverse->counterpart;
+				}
+				if (traverse->time == target->time) {
+					tail->counterpart = traverse->counterpart;
+				}
+			}
+			traverse = traverse->next;
+		} while (traverse != head);
+	}
+	delete target;
 }
 
 bool WorkPlan::checkCycledList()
