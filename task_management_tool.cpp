@@ -127,27 +127,17 @@ void WorkPlan::add(Task *task)
 					if (newTask->priority > compeer->priority) {
 						if (compeer->next != NULL || compeer->previous != NULL) {
 							if (compeer == head) {
-								head = newTask;
-								head->next = compeer->next;
-								head->previous = compeer->previous;
-								compeer->previous->next = head;
-								compeer->next->previous = head;
-								compeer->next = NULL;
-								compeer->previous = NULL;
-								head->counterpart = compeer->counterpart;
-								compeer->counterpart = NULL;
-								// add as the first task of the first day
-							} else {
-								newTask->next = compeer->next;
-								newTask->previous = compeer->previous;
-								compeer->previous->next = newTask;
-								compeer->next->previous = newTask;
-								compeer->next = NULL;
-								compeer->previous = NULL;
-								newTask->counterpart = compeer->counterpart;
-								compeer->counterpart = NULL;
-								// add before first task of a day
+								head = newTask;	// add as the first task of the first day
 							}
+							newTask->next = compeer->next;
+							newTask->previous = compeer->previous;
+							compeer->previous->next = newTask;
+							compeer->next->previous = newTask;
+							compeer->next = NULL;
+							compeer->previous = NULL;
+							newTask->counterpart = compeer->counterpart;
+							compeer->counterpart = NULL;
+							// add before first task of a day
 						}
 						// add task instead of compeer
 						checkAvailableNextTimesFor(compeer);
@@ -167,25 +157,16 @@ void WorkPlan::add(Task *task)
 				} else if (newTask->time < compeer->time) {
 					if (compeer->next != NULL || compeer->previous != NULL) {
 						if (compeer == head) {
-							head = newTask;
-							head->next = compeer->next;
-							head->previous = compeer->previous;
-							compeer->previous->next = head;
-							compeer->next->previous = head;
-							compeer->next = NULL;
-							compeer->previous = NULL;
-							head->counterpart = compeer;
-							return; // add as the first task of the first day
-						} else {
-							newTask->next = compeer->next;
-							newTask->previous = compeer->previous;
-							compeer->previous->next = newTask;
-							compeer->next->previous = newTask;
-							compeer->next = NULL;
-							compeer->previous = NULL;
-							newTask->counterpart = compeer;
-							return; // add before first task of a day
+							head = newTask; // add as the first task of the first day
 						}
+						newTask->next = compeer->next;
+						newTask->previous = compeer->previous;
+						compeer->previous->next = newTask;
+						compeer->next->previous = newTask;
+						compeer->next = NULL;
+						compeer->previous = NULL;
+						newTask->counterpart = compeer;
+						return; // add before first task of a day
 					}
 					else {
 						newTask->next = NULL;
@@ -260,20 +241,16 @@ void WorkPlan::checkAvailableNextTimesFor(Task *delayed)
 		if (traverse == head) break;
 	}
 	compeer = traverse;
-	int time = 0;
-	//cout << "DEBUG LINE 1\n";
+	int time = delayed->time;
 	if (delayed->time != 7) {
 		while (compeer->counterpart != NULL && delayed->time != compeer->time) {
 			compeer = compeer->counterpart;
 		}
-		//cout << "DEBUG LINE 2\n";
-		time = delayed->time;
 		do {
 			while (compeer->counterpart != NULL) {
 				if (time + 1 != compeer->counterpart->time) {
 					usable_day = compeer->day;
 					usable_time = time + 1;
-					cout << delayed->name << " " << usable_day << " " << usable_time << "\n";
 					return;
 				}
 				time++;
@@ -282,15 +259,13 @@ void WorkPlan::checkAvailableNextTimesFor(Task *delayed)
 			traverse = traverse->next;
 			time = 7;
 			compeer = traverse;
-		} while (compeer != head);
+		} while (compeer != head); // for delaying a task
 	} else {
-		time = delayed->time;
 		do {
 			do {
 				if (time + 1 != compeer->time) {
 					usable_day = compeer->day;
 					usable_time = time + 1;
-					cout << delayed->name << " " << usable_day << " " << usable_time << "\n";
 					return;
 				}
 				time++;
@@ -299,9 +274,8 @@ void WorkPlan::checkAvailableNextTimesFor(Task *delayed)
 			traverse = traverse->next;
 			time = 7;
 			compeer = traverse;
-		} while (compeer != head);
+		} while (compeer != head); // for delaying all tasks in a day
 	}
-
 	usable_day = -1;
 	usable_time = -1;
 	return;
@@ -329,11 +303,8 @@ void WorkPlan::delayAllTasksOfDay(int day)
 		delayed->time = usable_time;
 		tail = traverse;
 		traverse = traverse->counterpart;
-		cout << "DEBUG LINE BT\n";
 		remove(tail);
-		cout << "DEBUG LINE AT\n";
 		add(delayed);
-		cout << "DEBUG LINE AD\n";
 	}
 }
 
