@@ -16,6 +16,7 @@ struct WorkPlan{
 	void create();
 	void close();
 	void add(Task *task);
+	void addToSameDay(Task *newTask, Task *compeer);
 	void checkAvailableNextTimesFor(Task *delayed);
 	int  getUsableDay();
 	int getUsableTime();

@@ -74,9 +74,6 @@ void WorkPlan::create()
 {		
 	//THIS FUNCTION WILL BE CODED BY YOU
 	head = NULL;
-
-	usable_day = -1;
-	usable_time = -1;
 }
 
 void WorkPlan::close()
@@ -86,12 +83,12 @@ void WorkPlan::close()
 	Task *tail = new Task();
 	traverse = head;
 	head->previous->next = NULL; // break the circularity
-	while (head != NULL) {
+	while (head != NULL) { // delete until a loop is finished
 		head = head->next;
 		while (traverse != NULL) {
 			tail = traverse;
 			traverse = traverse->counterpart;
-			delete tail;
+			delete tail; // delete the whole day starting from the first task of the day
 		}
 		traverse = head;
 	}
@@ -123,36 +120,8 @@ void WorkPlan::add(Task *task)
 			Task *tail = new Task();
 			compeer = traverse;
 			while (compeer != NULL) {
-				if (newTask->time == compeer->time) {
-					if (newTask->priority > compeer->priority) {
-						if (compeer->next != NULL || compeer->previous != NULL) {
-							if (compeer == head) {
-								head = newTask;	// add as the first task of the first day
-							}
-							newTask->next = compeer->next;
-							newTask->previous = compeer->previous;
-							compeer->previous->next = newTask;
-							compeer->next->previous = newTask;
-							compeer->next = NULL;
-							compeer->previous = NULL;
-							newTask->counterpart = compeer->counterpart;
-							compeer->counterpart = NULL;
-							// add before first task of a day
-						}
-						// add task instead of compeer
-						checkAvailableNextTimesFor(compeer);
-						compeer->day = usable_day;
-						compeer->time = usable_time;
-						add(compeer);
-						return;
-					} else {
-						// delay task to another time
-						checkAvailableNextTimesFor(newTask);
-						newTask->day = usable_day;
-						newTask->time = usable_time;
-						add(newTask);
-						return;
-					}
+				if (newTask->time == compeer->time) { // there already exists a task at the same time
+					addToSameDay(newTask, compeer);
 					return;
 				} else if (newTask->time < compeer->time) {
 					if (compeer->next != NULL || compeer->previous != NULL) {
@@ -207,6 +176,44 @@ void WorkPlan::add(Task *task)
 	return;
 	// add as tail
 } 
+
+void WorkPlan::addToSameDay(Task *newTask, Task *compeer) {
+	if (newTask->priority > compeer->priority) {
+		if (compeer->next != NULL || compeer->previous != NULL) {
+			if (compeer == head) {
+				head = newTask;	// add as the first task of the first day
+			}
+			newTask->next = compeer->next;
+			newTask->previous = compeer->previous;
+			compeer->previous->next = newTask;
+			compeer->next->previous = newTask;
+			compeer->next = NULL;
+			compeer->previous = NULL;
+			newTask->counterpart = compeer->counterpart;
+			compeer->counterpart = NULL;
+			// add before first task of a day
+		}
+		// add task instead of compeer
+		checkAvailableNextTimesFor(compeer);
+		if (usable_day != -1 || usable_time != -1) {
+			compeer->day = usable_day;
+			compeer->time = usable_time;
+			add(compeer); // add compeer to next available time
+		} else {
+			// add compeer to next not allocated time
+		}
+		} else {
+		// delay task to another time
+		checkAvailableNextTimesFor(newTask);
+		if (usable_day != -1 || usable_time != -1) {
+			newTask->day = usable_day;
+			newTask->time = usable_time;
+			add(newTask); // add task to next available time
+		} else {
+			// add task to next not allocted time
+		}
+	}
+}
 
 Task * WorkPlan::getTask(int day, int time)
 {
