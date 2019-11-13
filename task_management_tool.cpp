@@ -195,23 +195,15 @@ void WorkPlan::addToSameDay(Task *newTask, Task *compeer) {
 		}
 		// add task instead of compeer
 		checkAvailableNextTimesFor(compeer);
-		if (usable_day != -1 || usable_time != -1) {
-			compeer->day = usable_day;
-			compeer->time = usable_time;
-			add(compeer); // add compeer to next available time
-		} else {
-			// add compeer to next not allocated time
-		}
-		} else {
+		compeer->day = usable_day;
+		compeer->time = usable_time;
+		add(compeer); // add compeer to next available time
+	} else {
 		// delay task to another time
 		checkAvailableNextTimesFor(newTask);
-		if (usable_day != -1 || usable_time != -1) {
-			newTask->day = usable_day;
-			newTask->time = usable_time;
-			add(newTask); // add task to next available time
-		} else {
-			// add task to next not allocted time
-		}
+		newTask->day = usable_day;
+		newTask->time = usable_time;
+		add(newTask); // add task to next available time
 	}
 }
 
@@ -283,8 +275,54 @@ void WorkPlan::checkAvailableNextTimesFor(Task *delayed)
 			compeer = traverse;
 		} while (compeer != head); // for delaying all tasks in a day
 	}
-	usable_day = -1;
-	usable_time = -1;
+	checkNextNotAllocatedTimesFor(delayed);
+	return;
+}
+
+void WorkPlan::checkNextNotAllocatedTimesFor (Task *delayed) {
+	Task* traverse = new Task; // to remember the day the task is in
+	Task* compeer = new Task; // to traverse the tasks of a day
+	traverse = head;
+	while (delayed->day != traverse->day) {
+		traverse = traverse->next;
+		if (traverse == head) break;
+	}
+	compeer = traverse;
+	if (delayed->time != 7) {
+		while (compeer->counterpart != NULL) {
+			compeer = compeer->counterpart;
+		}
+		do {
+			while (compeer->counterpart != NULL) {
+				compeer = compeer->counterpart;
+			}
+			if (compeer->time + 1 != 16) {
+				usable_day = compeer->day;
+				usable_time = compeer->time + 1;
+				return;
+			}
+			traverse = traverse->next;
+			compeer = traverse;
+		} while (compeer != head); // for delaying a task
+		//checks for not allocated time on the current day and for the following days too
+	} else {
+		do {
+			while (compeer->counterpart != NULL) {
+				compeer = compeer->counterpart;
+			}
+			if (compeer->time + 1 != 16) {
+				usable_day = compeer->day;
+				usable_time = compeer->time + 1;
+				return;
+			}
+			traverse = traverse->next;
+			compeer = traverse;
+		} while (compeer != head); // for delaying all tasks in a day
+		//checks for not allocated time on the following days
+	}
+	//make new day and add the task at 8am
+	usable_day = head->previous->day + 1;
+	usable_time = 8;
 	return;
 }
 
@@ -318,7 +356,7 @@ void WorkPlan::delayAllTasksOfDay(int day)
 void WorkPlan::remove(Task *target)
 {
 	//THIS FUNCTION WILL BE CODED BY YOU
-	if (target->next || target->previous) {
+	if (target->next != NULL || target->previous != NULL) {
 		if (target->counterpart == NULL) {
 			(target->previous)->next = target->next;
 			(target->next)->previous = target->previous;
@@ -335,18 +373,19 @@ void WorkPlan::remove(Task *target)
 		traverse = head;
 		do {
 			if (traverse->day == target->day) {
-				while (traverse->time != target->time && traverse) {
+				while (traverse != NULL && traverse->time != target->time) {
 					tail = traverse;
 					traverse = traverse->counterpart;
 				}
 				if (traverse->time == target->time) {
 					tail->counterpart = traverse->counterpart;
+					delete target;
+					return;
 				}
 			}
 			traverse = traverse->next;
 		} while (traverse != head);
 	}
-	delete target;
 }
 
 bool WorkPlan::checkCycledList()
