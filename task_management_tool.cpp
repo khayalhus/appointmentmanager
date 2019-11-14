@@ -22,8 +22,8 @@ void WorkPlan::display(bool verbose,bool testing)
 	string inone="***";
 	if (head!=NULL)
 	{
-		Task *pivot =new Task;
-		Task *compeer =new Task;
+		Task *pivot;
+		Task *compeer;
 			
 		pivot=head;
 		do
@@ -203,7 +203,8 @@ void WorkPlan::addToSameTime(Task *newTask, Task *compeer) {
 		compeer->time = usable_time;
 		add(compeer); // add compeer to next available or not allocated time
 	} else {
-		// delay task to another time
+		// no condition given for same priorities. Delaying new task for this case as well
+		// delay task to another time (if it has lower priority)
 		checkAvailableNextTimesFor(newTask);
 		newTask->day = usable_day;
 		newTask->time = usable_time;
@@ -218,18 +219,18 @@ Task * WorkPlan::getTask(int day, int time)
 	do {
 		if (traverse->day == day) {
 			while (traverse != NULL && traverse->time != time) {
-				traverse = traverse->counterpart;
+				traverse = traverse->counterpart; // check multi-linked list to find the time
 			}
 			if (traverse->time == time) {
-				return traverse;
+				return traverse; // return task at that day and time
 			}
 			else {
-				return NULL;
+				return NULL; // no such task
 			}
 		}
-		traverse = traverse->next;
+		traverse = traverse->next; // find the day
 	} while (traverse != head);
-	return NULL;
+	return NULL; // no such task
 }
 
 
@@ -406,7 +407,7 @@ void WorkPlan::remove(Task *target)
 
 bool WorkPlan::checkCycledList()
 {				
-	Task *pivot=new Task();
+	Task *pivot;
 	pivot=head;
 	int patient=100;
 	bool r=false;
