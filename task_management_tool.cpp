@@ -296,47 +296,43 @@ void WorkPlan::checkNextNotAllocatedTimesFor(Task *delayed) {
 	}
 	compeer = traverse;
 	if (delayed->time != 16) {
-		// check next not allocated time for a task
-		// checks the same day as well
+		// check for next not allocated time on the same day
 		while (compeer->counterpart != NULL) {
 			compeer = compeer->counterpart;
 		}
-		do {
-			while (compeer->counterpart != NULL) {
-				compeer = compeer->counterpart;
-			}
-			// check if task can be added after one hour from the last task (and if that would be in working hours)
-			if (compeer->time + 1 != 16) {
-				usable_day = compeer->day;
-				usable_time = compeer->time + 1;
-				return;
-			}
-			traverse = traverse->next;
-			compeer = traverse;
-		} while (compeer != head); // for delaying a task
-		//checks for not allocated time on the current day and for the following days too
-	} else {
-		// check next not allocated time for a task (used for delaying all tasks)
-		// checks the following days only
-		do {
-			while (compeer->counterpart != NULL) {
-				compeer = compeer->counterpart;
-			}
-			// check if task can be added after one hour from the last task (and if that would be in working hours)
-			if (compeer->time + 1 != 16) {
-				usable_day = compeer->day;
-				usable_time = compeer->time + 1;
-				return;
-			}
-			traverse = traverse->next;
-			compeer = traverse;
-		} while (compeer != head); // for delaying all tasks in a day
-		//checks for not allocated time on the following days
+		if (compeer->time + 1 != 16) {
+			usable_day = compeer->day;
+			usable_time = compeer->time + 1;
+			return;
+		}
 	}
-	//make new day and add the task at 8am (can't allocated time on existing days)
+
+	if (traverse->next == head) {
+		usable_day = traverse->day + 1;
+		usable_time = 8;
+		return; // make new day after last day and task at 8am
+	}
+
+	// check for next not allocated time on the following days
+	traverse = traverse->next;
+	compeer = traverse;
+	do {
+		while (compeer->counterpart != NULL) {
+			compeer = compeer->counterpart;
+		}
+		// check if task can be added after one hour from the last task (and if that would be in working hours)
+		if (compeer->time + 1 != 16) {
+			usable_day = compeer->day;
+			usable_time = compeer->time + 1;
+			return;
+		}
+		traverse = traverse->next;
+		compeer = traverse;
+	} while (compeer != head); // for delaying all tasks in a day
+
 	usable_day = head->previous->day + 1;
 	usable_time = 8;
-	return;
+	return; // create new day after last day and task at 8am
 }
 
 void WorkPlan::delayAllTasksOfDay(int day)
