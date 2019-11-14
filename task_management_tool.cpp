@@ -244,51 +244,50 @@ void WorkPlan::checkAvailableNextTimesFor(Task *delayed)
 	}
 	compeer = traverse;
 	int time = delayed->time;
-	if (delayed->time != 7) {
-		// check available next time for a task
-		// checks for available time on the same day as well
+	if (delayed->time != 16) {
+		// check available next time on the same day
 		while (compeer->counterpart != NULL && delayed->time != compeer->time) {
 			compeer = compeer->counterpart;
 		}
-		do {
-			while (compeer->counterpart != NULL) {
-				// check if there is an empty hour between tasks
-				if (time + 1 != compeer->counterpart->time) {
-					// if there is assign usable_day and usable_time accordingly
-					usable_day = compeer->day;
-					usable_time = time + 1;
-					return;
-				}
-				time++; //same as time = compeer->counterpart->time
-				compeer = compeer->counterpart;
+		while (compeer->counterpart != NULL) {
+		// check if there is an empty hour between tasks
+			if (time + 1 != compeer->counterpart->time) {
+				// if there is assign usable_day and usable_time accordingly
+				usable_day = compeer->day;
+				usable_time = time + 1;
+				return;
 			}
-			traverse = traverse->next;
-			time = 7;
-			compeer = traverse;
-		} while (compeer != head); // for delaying a task
-	} else {
-		// check available next time for a task (used for delaying all days)
-		// starts checking from the next day
-		do {
-			do {
-				if (time + 1 != compeer->time) {
-					usable_day = compeer->day;
-					usable_time = time + 1;
-					return;
-				}
-				time++;
-				compeer = compeer->counterpart;
-			} while (compeer != NULL);
-			traverse = traverse->next;
-			time = 7;
-			compeer = traverse;
-		} while (compeer != head); // for delaying all tasks in a day
+			time++; //same as time = compeer->counterpart->time
+			compeer = compeer->counterpart;
+		}
 	}
+	if (traverse->next == head) {
+		checkNextNotAllocatedTimesFor(delayed);
+		return;
+	}
+	// check for available next time on the following days
+	// used for delaying a single task and a whole day
+	compeer = traverse->next;
+	time = 7;
+	do {
+		do {
+			if (time + 1 != compeer->time) {
+				usable_day = compeer->day;
+				usable_time = time + 1;
+				return;
+			}
+			time++;
+			compeer = compeer->counterpart;
+		} while (compeer != NULL);
+		traverse = traverse->next;
+		time = 7;
+		compeer = traverse;
+	} while (compeer != head); // for delaying all tasks in a day
 	checkNextNotAllocatedTimesFor(delayed); // check for next not allocated time if there is no available time
 	return;
 }
 
-void WorkPlan::checkNextNotAllocatedTimesFor (Task *delayed) {
+void WorkPlan::checkNextNotAllocatedTimesFor(Task *delayed) {
 	Task* traverse = head; // to remember the day the task is in
 	Task* compeer; // to traverse the tasks of a day
 	while (delayed->day != traverse->day) {
@@ -296,7 +295,7 @@ void WorkPlan::checkNextNotAllocatedTimesFor (Task *delayed) {
 		if (traverse == head) break;
 	}
 	compeer = traverse;
-	if (delayed->time != 7) {
+	if (delayed->time != 16) {
 		// check next not allocated time for a task
 		// checks the same day as well
 		while (compeer->counterpart != NULL) {
@@ -358,8 +357,8 @@ void WorkPlan::delayAllTasksOfDay(int day)
 		strcpy(delayed->name, traverse->name);
 		delayed->priority = traverse->priority;
 		// this is to start checking from the next day (in order to seperate from delaying a single task)
-		delayed->day = day + 1;
-		delayed->time = 7;
+		delayed->day = day;
+		delayed->time = 16;
 		checkAvailableNextTimesFor(delayed);
 		delayed->day = usable_day;
 		delayed->time = usable_time;
