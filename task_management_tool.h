@@ -1,3 +1,7 @@
+/* @Author
+Student Name: Khayal Huseynov
+Student ID : 150180903
+Date: 13/11/2019 */
 /*
 PLEASE DO NOT REMOVE ANY FUNCTION OR VARIABLE IN WORKPLAN STRUCT, IF YOU NEED YOU CAN ADD NEW FUNCTIONS 
 */
@@ -16,9 +20,9 @@ struct WorkPlan{
 	void create();
 	void close();
 	void add(Task *task);
-	void addToSameDay(Task *newTask, Task *compeer);
+	void addToSameTime(Task *newTask, Task *compeer);
 	void checkAvailableNextTimesFor(Task *delayed);
-	void checkNextNotAllocatedTimesFor (Task *delayed);
+	void checkNextNotAllocatedTimesFor(Task *delayed);
 	int  getUsableDay();
 	int getUsableTime();
 	void remove(Task *target);
